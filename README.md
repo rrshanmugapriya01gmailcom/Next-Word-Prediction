@@ -148,7 +148,7 @@ print(tokenizer.decode(outputs[0]))
 
 ## 🧠 Authors & Credits
 
-- **Developer:** Your Name
+- **Developer:** R R Shanmugapriya
 - **Dataset:** [WikiText-2](https://huggingface.co/datasets/wikitext)
 - **Frameworks:** TensorFlow, PyTorch, Hugging Face Transformers
 
