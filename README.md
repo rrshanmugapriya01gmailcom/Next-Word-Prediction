@@ -1,15 +1,15 @@
-# 🔮 Next Word Prediction using LSTM & GPT-2 Transformers (Fine-Tuned on WikiText-2)
+# Next Word Prediction using LSTM & GPT-2 Transformers (Fine-Tuned on WikiText-2)
 
 This project explores and compares two deep learning approaches for **Next Word Prediction**:
 
-- 📚 **LSTM-based model** (built from scratch using Keras)
-- 🤖 **Transformer-based model** (fine-tuned GPT-2 using Hugging Face Transformers)
+-  **LSTM-based model** (built from scratch using Keras)
+-  **Transformer-based model** (fine-tuned GPT-2 using Hugging Face Transformers)
 
 Both models are trained on the [WikiText-2](https://huggingface.co/datasets/wikitext) dataset and evaluated on **loss** and **perplexity** to determine performance.
 
 ---
 
-## 🚀 Project Structure
+##  Project Structure
 
 ```
 📁 next_word_prediction_project/
@@ -32,16 +32,16 @@ Both models are trained on the [WikiText-2](https://huggingface.co/datasets/wiki
 
 ---
 
-## 🧠 Models Used
+##  Models Used
 
-### ✅ LSTM (Keras)
+###  LSTM (Keras)
 - Tokenized using `Tokenizer`
 - Created n-gram sequences of size 4
 - Trained with a Bidirectional LSTM layer
 - Metrics: `accuracy`, `top_5_accuracy`
 - Saved: `.h5` model, tokenizer, and weights
 
-### ✅ GPT-2 Transformer (Hugging Face)
+###  GPT-2 Transformer (Hugging Face)
 - Fine-tuned using `Trainer` on grouped token blocks
 - Used `GPT2Config` with dropout adjustment
 - Early stopping, cosine learning rate scheduling
@@ -50,7 +50,7 @@ Both models are trained on the [WikiText-2](https://huggingface.co/datasets/wiki
 
 ---
 
-## 📊 Model Comparison
+##  Model Comparison
 
 | Metric       | LSTM Model | GPT-2 Transformer |
 |--------------|------------|-------------------|
@@ -61,7 +61,7 @@ Both models are trained on the [WikiText-2](https://huggingface.co/datasets/wiki
 
 ---
 
-## ⚙️ Installation & Setup
+##  Installation & Setup
 
 ### 1. Clone the Repository
 
@@ -89,7 +89,7 @@ dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
 
 ---
 
-## 🏋️‍♂️ Training
+##  Training
 
 ### ➤ LSTM Training
 
@@ -113,7 +113,7 @@ Outputs:
 
 ---
 
-## 🧪 Inference
+##  Inference
 
 ### ➤ Using Fine-Tuned GPT-2
 
@@ -132,13 +132,13 @@ print(tokenizer.decode(outputs[0]))
 
 ---
 
-## 📈 Results Visualization
+## Results Visualization
 
 ![Comparison](comparison_plot.png)
 
 ---
 
-## 📌 Key Learnings
+##  Key Learnings
 
 - LSTM is simple and requires manual preprocessing.
 - Transformers handle longer context and outperform in prediction accuracy.
@@ -146,7 +146,7 @@ print(tokenizer.decode(outputs[0]))
 
 ---
 
-## 🧠 Authors & Credits
+## Authors & Credits
 
 - **Developer:** R R Shanmugapriya
 - **Dataset:** [WikiText-2](https://huggingface.co/datasets/wikitext)
@@ -154,6 +154,6 @@ print(tokenizer.decode(outputs[0]))
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License.
