@@ -136,7 +136,8 @@ print(tokenizer.decode(outputs[0]))
 
 ![Comparison](comparison_plot.png)
 
----
+---(https://github.com/user-attachments/assets/5596adeb-8811-49e1-bf38-83149d3db913)
+
 
 ##  Key Learnings
 
