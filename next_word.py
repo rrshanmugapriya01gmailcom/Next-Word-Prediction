@@ -1,132 +1,194 @@
 import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import torch
+import os
+import zipfile
+import gdown
 
-# --- IMPORTANT: REPLACE THIS PATH WITH THE ACTUAL PATH TO YOUR FINE-TUNED MODEL ---
-# During your fine-tuning process, you would have saved the model.
-# Example: If you saved it to a folder named 'finetuned_gpt2_wikitext',
-# then the path would be './finetuned_gpt2_wikitext'.
-FINETUNED_MODEL_PATH = '/home/dharun/Desktop/wikitext/gpt2-wikitext-best-model' 
-# --- END IMPORTANT ---
+# --- Page Configuration ---
+st.set_page_config(
+    page_title="FlowMate - AI Typing Assistant",
+    page_icon="📝",
+    layout="centered"
+)
 
-# Load model and tokenizer
+# --- Title and Tagline ---
+st.markdown("<h1 class='title'>💬 FlowMate</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#555; font-size:18px;'>Let your ideas flow. <em>We'll fill the words.</em></p>", unsafe_allow_html=True)
+
+# --- Global Styles ---
+st.markdown("""
+    <style>
+    html, body, [class*="css"] {
+        background: linear-gradient(to right, #e0eafc, #cfdef3);
+    }
+
+    .title {
+        text-align: center;
+        color: #5D3FD3;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 2.5em;
+        margin-top: 10px;
+    }
+
+    .feature-boxes {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 10px;
+        margin-bottom: 40px;
+    }
+    .feature {
+        flex: 1 1 220px;
+        padding: 20px;
+        border-radius: 12px;
+        color: #222;
+        font-size: 17px;
+        font-weight: 500;
+        background-color: #fefefe;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        text-align: left;
+    }
+    .feature span {
+        font-weight: bold;
+        font-size: 19px;
+        display: block;
+        margin-bottom: 6px;
+        color: #2C3E50;
+    }
+
+    .stTextArea textarea {
+        font-size: 18px !important;
+        padding: 14px !important;
+        border-radius: 12px !important;
+        color: #000 !important;
+        background-color: #ffffff !important;
+    }
+
+    .footer-text {
+        text-align: center;
+        font-size: 0.9em;
+        color: #777;
+        margin-top: 30px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- Intro Text ---
+st.markdown("<p style='text-align:center; color:#555;'>Smart typing assistant that predicts your next word in real-time!</p>", unsafe_allow_html=True)
+
+# --- Feature Banner ---
+st.markdown("<h3 style='text-align:center; color:#5D3FD3;'>🚀 Why FlowMate?</h3>", unsafe_allow_html=True)
+st.markdown("""
+<div class="feature-boxes">
+    <div class="feature" style="background-color:#FFE6F0;">
+        <span>💡 Smart Suggestions</span>
+        Instantly suggests words to help you write better, faster, and more creatively.
+    </div>
+    <div class="feature" style="background-color:#E6F7FF;">
+        <span>📝 Creative Boost</span>
+        Use it while writing stories, blogs, or notes — it gives you that extra spark!
+    </div>
+    <div class="feature" style="background-color:#EAFFEA;">
+        <span>⚡ Just Click & Go</span>
+        It’s a simple one-click tool — no login, no ads, just fun writing!
+    </div>
+    <div class="feature" style="background-color:#FFF3CD;">
+        <span>📱 Works Everywhere</span>
+        Whether you’re on a laptop or phone, FlowMate works beautifully.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# --- Load Fine-tuned GPT-2 Model from Google Drive ZIP ---
+MODEL_URL = "https://drive.google.com/uc?id=1lUu0_3gnxZ90xfEmujVIO73eLm99FsdB"
+MODEL_ZIP = "gpt2-wikitext-best-model.zip"
+MODEL_DIR = "gpt2-wikitext-best-model"
+
 @st.cache_resource
 def load_finetuned_model():
-    try:
-        model = GPT2LMHeadModel.from_pretrained(FINETUNED_MODEL_PATH)
-        tokenizer = GPT2Tokenizer.from_pretrained(FINETUNED_MODEL_PATH)
-        # Ensure the tokenizer has a pad_token if it doesn't by default (common for GPT-2 in generation)
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-        model.eval()
-        st.success(f"Successfully loaded fine-tuned model from {FINETUNED_MODEL_PATH}")
-        return model, tokenizer
-    except Exception as e:
-        st.error(f"Error loading fine-tuned model from {FINETUNED_MODEL_PATH}. Make sure the path is correct and the model files exist.")
-        st.error(f"Error details: {e}")
-        # Fallback to generic GPT2 if fine-tuned model fails to load, for demo purposes
-        st.info("Attempting to load generic 'gpt2' model instead for demonstration.")
-        model = GPT2LMHeadModel.from_pretrained("gpt2")
-        tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-        model.eval()
-        return model, tokenizer
+    if not os.path.exists(MODEL_DIR):
+        with st.spinner("📦 Downloading fine-tuned GPT-2 model..."):
+            gdown.download(MODEL_URL, MODEL_ZIP, quiet=False)
 
+        with st.spinner("📂 Extracting model..."):
+            with zipfile.ZipFile(MODEL_ZIP, 'r') as zip_ref:
+                zip_ref.extractall()
+
+    model = GPT2LMHeadModel.from_pretrained(MODEL_DIR)
+    tokenizer = GPT2Tokenizer.from_pretrained(MODEL_DIR)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    model.to("cpu")
+    model.eval()
+    return model, tokenizer
 
 model, tokenizer = load_finetuned_model()
 
-st.title("Next Word Prediction (Fine-tuned GPT-2)")
-st.markdown("This app predicts the next most likely words based on your input.")
-
-# Initialize session state
+# --- Session State ---
 if "input_text" not in st.session_state:
     st.session_state.input_text = ""
 if "predicted_words" not in st.session_state:
     st.session_state.predicted_words = []
 
-# Workaround: Use temp variable for input display
-# Note: Using a key makes the text_area a controlled component,
-# but st.experimental_rerun() might still cause minor display quirks.
-# For more robust solutions, consider a custom component or a more complex state management.
+# --- Input Area ---
+st.markdown("### 💬 Start Typing Below")
 text = st.text_area(
-    "Enter your sentence:",
-    value=st.session_state.input_text,
-    key="user_input_area", # Changed key to avoid potential conflicts if 'user_input' was used elsewhere
-    height=100
+    "", value=st.session_state.input_text, key="user_input_area", height=120,
+    placeholder="e.g., The day was so beautiful that..."
 )
 
-# Predict next words
-if st.button("Predict Next Words"):
-    if not text.strip(): # Check if input is empty
-        st.warning("Please enter some text to predict.")
+# --- Prediction Button ---
+if st.button("✨ Suggest a Word!"):
+    if not text.strip():
+        st.warning("Please enter some text first.")
     else:
-        # Update session state with current text so it persists across reruns
         st.session_state.input_text = text
-
-        # Ensure input_ids don't exceed model's max_position_embeddings (typically 1024 for gpt2)
-        # We'll truncate if necessary, and warn the user.
-        max_model_input_length = model.config.max_position_embeddings - 1 # Leave space for 1 generated token
+        max_len = model.config.max_position_embeddings - 1
         encoded_input = tokenizer.encode(st.session_state.input_text, return_tensors="pt")
+        input_ids = encoded_input[:, -max_len:] if encoded_input.shape[1] > max_len else encoded_input
 
-        if encoded_input.shape[1] > max_model_input_length:
-            st.warning(f"Input text is too long ({encoded_input.shape[1]} tokens). Truncating to {max_model_input_length} tokens.")
-            input_ids = encoded_input[:, -max_model_input_length:] # Use only the last N tokens
-        else:
-            input_ids = encoded_input
-
-        # Move input_ids to GPU if available
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model.to(device)
-        input_ids = input_ids.to(device)
-
-
-        # Generate multiple samples
+        input_ids = input_ids.to("cpu")
         outputs = model.generate(
             input_ids,
-            max_length=input_ids.shape[1] + 1, # Generate only the very next token
+            max_length=input_ids.shape[1] + 1,
             num_return_sequences=5,
-            do_sample=True, # Enable sampling for variety
-            top_k=50, # Consider top 50 most likely words
-            temperature=0.95, # Controls randomness: higher = more creative, lower = more deterministic
-            pad_token_id=tokenizer.eos_token_id # Use EOS token for padding
+            do_sample=True,
+            top_k=50,
+            temperature=0.95,
+            pad_token_id=tokenizer.eos_token_id
         )
 
-        # Extract unique next-word predictions
         predictions = set()
-        current_input_len_tokens = input_ids.shape[1]
+        current_len = input_ids.shape[1]
 
         for output in outputs:
-            # Decode the generated sequence (input + 1 new token)
-            decoded_output = tokenizer.decode(output, skip_special_tokens=True)
-
-            # Get only the newly generated token/word
-            # This logic needs to be careful as decoding might add spaces or slight variations.
-            # A more robust way is to just get the very last token's ID and decode it.
-            if output.shape[0] > current_input_len_tokens: # Ensure a new token was actually generated
-                next_token_id = output[current_input_len_tokens].item()
+            if output.shape[0] > current_len:
+                next_token_id = output[current_len].item()
                 next_word = tokenizer.decode(next_token_id, skip_special_tokens=True).strip()
                 if next_word:
-                    predictions.add(next_word.split(' ')[0]) # Take only the first word if it decodes to multiple
-            
-        st.session_state.predicted_words = list(predictions)[:3] # Show top 3 unique predictions
-        # Move model back to CPU if desired for resource management, or keep on GPU
-        # model.to("cpu")
+                    predictions.add(next_word.split(' ')[0])
 
+        st.session_state.predicted_words = list(predictions)[:3]
 
-# Display prediction buttons
+# --- Prediction Buttons ---
 if st.session_state.predicted_words:
-    st.markdown("**Click a word to append it:**")
+    st.markdown("### 🧠 Suggested Words")
+    st.markdown("<p style='color:#333;'>Click a word to continue writing:</p>", unsafe_allow_html=True)
     cols = st.columns(len(st.session_state.predicted_words))
     for i, word in enumerate(st.session_state.predicted_words):
-        if cols[i].button(word):
-            # Append the chosen word and update input_text in session_state
+        if cols[i].button(f"👉 {word}"):
             st.session_state.input_text = text + " " + word
-            st.session_state.predicted_words = [] # Clear predictions after one is chosen
-            st.rerun() # Rerun to update the text_area - CORRECTED LINE HERE
+            st.session_state.predicted_words = []
+            st.rerun()
 
-# Important for state management: ensure the text_area always reflects session_state.input_text
-# This prevents it from reverting when a button is clicked and then rerunning.
-# We set the 'value' of the text_area, and updates through button clicks modify st.session_state.input_text
-# which then forces the text_area to reflect that new value on rerun.
-st.session_state.input_text = text # Ensure this is updated for the next rerun if user types manually
+# --- Keep input synced ---
+st.session_state.input_text = text
+
+# --- Footer ---
+st.markdown("""<hr style="margin-top:30px;">
+<center class="footer-text">
+<p>💬 Try typing: <i>\"Once upon a time\"</i>, <i>\"The world is\"</i>, or <i>\"AI will\"</i></p>
+<p>Built with ❤️ using Streamlit & Transformers</p>
+</center>""", unsafe_allow_html=True)
